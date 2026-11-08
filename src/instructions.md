@@ -5,17 +5,22 @@ It finds the controller's `/dev/hidrawN` node by vendor and product id; the node
 
 ## Commands
 
-| Command | Purpose |
-|:--|:--|
-| `rgbctl show` | Print the current lighting, decoded, with bytes 273 to 289 in hex |
-| `rgbctl off` | LEDs off |
-| `rgbctl static <COLOR> [-b 1-5]` | One steady colour |
-| `rgbctl breathing <COLOR> [-b 1-5] [-s slow\|medium\|fast]` | One colour fading in and out |
-| `rgbctl wave [COLOR…] [-b] [-s] [-d right\|left]` | Up to four colours travelling; none means a generated rainbow |
-| `rgbctl rainbow [-b] [-s] [-d]` | The controller's own rainbow |
-| `rgbctl preset [NAME]` | Apply a preset from the config file, or its `default` |
-| `rgbctl presets` | List the presets and the file they came from |
-| `rgbctl instructions` | Print this text |
+| Command | Aliases | Purpose |
+|:--|:--|:--|
+| `show` | — | Print the controller's current lighting, decoded |
+| `off` | — | Turn the LEDs off |
+| `static` | — | One steady colour |
+| `breathing` | — | One colour fading in and out |
+| `wave` | — | Colours travelling along the strip; no colours means a generated rainbow |
+| `rainbow` | — | The controller's own rainbow |
+| `preset` | — | Apply a preset from the config file, or its default preset |
+| `presets` | — | List the presets in the config file |
+| `instructions` | — | Print the operator contract for this version |
+
+Settings:
+
+- `static` and `breathing` take one colour; `wave` takes up to four, repeated in order to fill the palette, and none means a generated rainbow.
+- `-b/--brightness` is 1 to 5; `-s/--speed` is `slow`, `medium` or `fast`; `-d/--direction` is `right` or `left`.
 
 A colour is `#rrggbb`, `rrggbb`, or one of red, green, blue, white, purple, cyan, yellow, orange, pink.
 Defaults: brightness 5, speed medium, direction right.

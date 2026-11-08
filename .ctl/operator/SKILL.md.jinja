@@ -1,0 +1,18 @@
+{%- from "ctl/version.md.jinja" import version_line -%}
+---
+name: rgbctl
+description: >-
+  Operate rgbctl, the MSI Mystic Light ARGB controller CLI for Linux: show the
+  current lighting, turn it off, set static, breathing, wave or rainbow
+  effects with colours, brightness, speed and direction, apply presets from
+  .ctl/rgb.yaml, and save to the controller's flash. Use when the user
+  mentions rgbctl, Mystic Light, motherboard ARGB or RGB lighting, case fan
+  or pump LEDs on an MSI board, or USB 0db0:0076.
+license: MIT
+{{ version_line(version) }}
+compatibility: Requires an rgbctl binary on Linux and read-write access to the controller's hidraw node.
+---
+
+# rgbctl
+
+{% include "rgbctl/contract.md.jinja" %}

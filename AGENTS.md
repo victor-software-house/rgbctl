@@ -47,7 +47,8 @@ The operator contract will be `rgbctl instructions` and `skills/rgbctl/SKILL.md`
   These three and `src/config.rs` build and test on any platform.
 - `src/hidraw.rs` (Linux only) finds the node and holds the two ioctls.
 - `src/run.rs` runs each command; `src/outcome.rs` is what a command returns, as JSON and as a human document.
-- `src/instructions.md` (`rgbctl instructions`) and `skills/rgbctl/SKILL.md` share one body; `tests/it/docs.rs` fails when they differ, and when the skill's `version` is not the crate's.
+- `src/instructions.md` (`rgbctl instructions`) and `skills/rgbctl/SKILL.md` are renders of `.ctl/operator/`: one shared `contract.md.jinja`, its command table from ctl-core's `Surface` over the Clap grammar, and the skill's `version` from `CARGO_PKG_VERSION`.
+  `tests/it/docs.rs` byte-compares both committed files with the render; edit the templates, never the renders, and regenerate with `UPDATE_OPERATOR_DOCS=1 cargo test docs` in CI's toolchain.
 - `tests/fixtures/report-0x50-off.txt` is a read-back of a board saved as off, in the probe's `offset: bytes` format.
 - `PORTING.md` maps the reference script to this crate and lists every deliberate difference.
 - The repository setup comes from the shared Copier template (project type `rust-crate`); `.copier-answers.yml` records its tag.

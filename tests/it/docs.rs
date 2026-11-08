@@ -1,22 +1,59 @@
-//! The bundled skill and `rgbctl instructions` state the same contract.
+//! The committed skill and `rgbctl instructions` are renders of the
+//! templates under `.ctl/operator/`, with the command table taken from the
+//! Clap grammar. Regenerate both with `UPDATE_OPERATOR_DOCS=1`.
 
-/// The text after a document's first heading line.
-fn body(document: &str) -> &str {
-    let heading = document.find("\n# ").map_or(0, |at| at + 1);
-    let rest = &document[heading..];
-    rest.split_once('\n').map_or("", |(_, body)| body)
+use std::fs;
+use std::path::Path;
+
+use minijinja::{Value, context};
+use rgbctl::cli::Cli;
+
+const CONTRACT: &str = ".ctl/operator/contract.md.jinja";
+
+fn crate_file(relative: &str) -> String {
+    fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join(relative))
+        .unwrap_or_else(|error| panic!("read {relative}: {error}"))
+}
+
+fn render(template: &str, context: &Value) -> String {
+    let mut environment = ctl_core::surface::environment()
+        .unwrap_or_else(|error| panic!("operator environment: {error}"));
+    environment
+        .add_template_owned("rgbctl/contract.md.jinja", crate_file(CONTRACT))
+        .unwrap_or_else(|error| panic!("parse {CONTRACT}: {error}"));
+    environment
+        .template_from_named_str(template, &crate_file(template))
+        .unwrap_or_else(|error| panic!("parse {template}: {error}"))
+        .render(context)
+        .unwrap_or_else(|error| panic!("render {template}: {error}"))
+}
+
+fn assert_committed(relative: &str, rendered: &str) {
+    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join(relative);
+    if std::env::var_os("UPDATE_OPERATOR_DOCS").is_some() {
+        fs::write(&path, rendered).unwrap_or_else(|error| panic!("write {relative}: {error}"));
+    }
+    assert_eq!(rendered, crate_file(relative), "{relative} is stale");
+}
+
+fn surface() -> ctl_core::Surface {
+    ctl_core::Surface::new::<Cli>("rgb")
 }
 
 #[test]
-fn the_skill_body_is_the_instructions_body() {
-    let skill = include_str!("../../skills/rgbctl/SKILL.md");
-    let instructions = include_str!("../../src/instructions.md");
-    assert_eq!(body(skill), body(instructions));
+fn the_skill_is_the_committed_render() {
+    let rendered = render(
+        ".ctl/operator/SKILL.md.jinja",
+        &context! { surface => surface(), version => env!("CARGO_PKG_VERSION") },
+    );
+    assert_committed("skills/rgbctl/SKILL.md", &rendered);
 }
 
 #[test]
-fn the_skill_version_is_the_crate_version() {
-    let skill = include_str!("../../skills/rgbctl/SKILL.md");
-    let version = format!("\nversion: {}\n", env!("CARGO_PKG_VERSION"));
-    assert!(skill.contains(&version), "SKILL.md must say {version:?}");
+fn the_instructions_are_the_committed_render() {
+    let rendered = render(
+        ".ctl/operator/instructions.md.jinja",
+        &context! { surface => surface() },
+    );
+    assert_committed("src/instructions.md", &rendered);
 }

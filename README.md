@@ -12,8 +12,8 @@ Checked on an MS-7E70 on 2026-11-08, as volatile writes:
 ## Unexplained observation
 
 On the MS-7E70, `rainbow` shows many colours, but the devices are out of sync with each other, and each light is dark about as long as it is lit.
-SignalRGB names the mode byte rgbctl writes for it (`05`) ColorRing, not rainbow.
-This may be how that effect works, or an impression from devices with different LED counts and layouts; no source explains it yet.
+MSI's own software names the mode byte rgbctl writes for it (`05`) ColorRing, not rainbow.
+No source describes how ColorRing looks, so it is not established whether this is the effect itself or the board's stored per-header LED count meeting devices of other lengths.
 `docs/protocol.md` collects what is known about the report, the modes, and the connected devices, with sources.
 
 ## Supported hardware

@@ -21,14 +21,6 @@ pub const INSTRUCTIONS: &str = include_str!("instructions.md");
 /// A config file that does not load, a preset that does not exist, or any
 /// failure to reach, read, write, or verify the controller.
 pub fn execute(cli: Cli) -> Result<Outcome> {
-    let search = Search {
-        explicit: cli.config,
-        working_dir: env::current_dir().context("reading the working directory")?,
-        user_config_dir: user_config_dir(
-            env::var_os("XDG_CONFIG_HOME").map(PathBuf::from),
-            env::var_os("HOME").map(PathBuf::from),
-        ),
-    };
     match cli.command {
         Command::Show => device::show(),
         Command::Off(write) => apply(&Effect::Off, &write),
@@ -36,9 +28,9 @@ pub fn execute(cli: Cli) -> Result<Outcome> {
         Command::Breathing(args) => apply(&args.effect(), &args.write),
         Command::Wave(args) => apply(&args.effect(), &args.write),
         Command::Rainbow(args) => apply(&args.effect(), &args.write),
-        Command::Preset(args) => preset(&search.load()?, &args),
+        Command::Preset(args) => preset(&load_config(cli.config)?, &args),
         Command::Presets => {
-            let Loaded { path, config } = search.load()?;
+            let Loaded { path, config } = load_config(cli.config)?;
             Ok(Outcome::Presets {
                 path: path.map(|path| path.display().to_string()),
                 default: config.default,
@@ -49,6 +41,20 @@ pub fn execute(cli: Cli) -> Result<Outcome> {
             markdown: INSTRUCTIONS.to_owned(),
         }),
     }
+}
+
+/// Only the commands that read presets look for a config file, so the others
+/// run even from a working directory that no longer exists.
+fn load_config(explicit: Option<PathBuf>) -> Result<Loaded> {
+    let search = Search {
+        explicit,
+        working_dir: env::current_dir().context("reading the working directory")?,
+        user_config_dir: user_config_dir(
+            env::var_os("XDG_CONFIG_HOME").map(PathBuf::from),
+            env::var_os("HOME").map(PathBuf::from),
+        ),
+    };
+    Ok(search.load()?)
 }
 
 fn apply(effect: &Effect, write: &WriteArgs) -> Result<Outcome> {

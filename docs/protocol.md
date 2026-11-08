@@ -52,16 +52,19 @@ MSI's `Enum_LightingMode` ([MB800 notes, line 101][mb800-fields]) and MSI's effe
 | Byte | MSI | rgbctl command | Observed |
 |:--|:--|:--|:--|
 | `00` | Off | `off` | dark |
-| `01` | Wave | `wave` | colours travel along every device |
+| `01` | Wave | `wave` | colours travel along every device; without colours, a smooth moving rainbow |
 | `02` | Steady | `static` | one steady colour |
-| `03` | Flame | — | — |
+| `03` | Flame | — | with rainbow colours selected, only red; the first palette slot was red, so whether it uses the palette is not established |
 | `04` | Breathing | `breathing` | one colour fading in and out, in step |
-| `05` | ColorRing | `rainbow` | see below |
-| `06` | Lightning | — | — |
-| `07` | Recreation | — | — |
-| `08` | Meteor | — | — |
+| `05` | ColorRing | `rainbow` | colours chase along the chain, see below |
+| `06` | Lightning | — | with user colours, the first colour, then rapid flashes of the others; brightness and speed both apply |
+| `07` | Recreation | — | dark or no change |
+| `08` | Meteor | — | one colour at a time runs along the chain, cycling through the palette |
 | `09` | Advanced | — | — |
-| `0a` | GodLike | — | — |
+| `0a` | GodLike | — | dark or no change |
+
+*Observed:* in the effect modes the controller runs one effect along every device as a single chain, in the order the cables connect them: on the test board the Halo fans, then the radiator fans, then the pump head, which is not their physical order in the case.
+Brightness 5 is very bright; brightness 1 with colour values of `30` was comfortable in steady mode.
 
 MSI's product page lists the effects in the same order, with "CPU Temperature" after Breathing and "Default" last.
 CPU Temperature is MSI Center repeatedly writing a steady colour picked from the CPU temperature ([reference script README][ref-readme]), so it has no mode byte.
@@ -86,33 +89,24 @@ So MSI's software has a separate Gen2 path, per port, that carries a mode and an
 A live capture of MSI Center setting JARGB_V2_1 on the MS-7E75 showed only `0x50` traffic; it does not say what was connected to that header ([MB800 notes, lines 18 to 24][mb800-ui]).
 SignalRGB sends per-LED colours in `0x51` ([plugin, line 1138][srgb-colors]).
 *Observed:* GET_REPORT `0x51` returns report `0x50` data, so a `0x51` read-back cannot confirm a per-LED write, and no `0x51` write lit anything in the 2026-11-08 test, including SignalRGB's full sequence for this board.
-*Observed:* the cooler on this board turned white after the `0x82` queries, or the wave write 5 s later, and stayed white through a USB reset and a restore of report `0x50`.
+*Observed:* the cooler on this board turned white after the `0x82` queries, or the wave write 5 s later (a later wave from a clean state did not repeat it), and stayed white through a USB reset and a restore of report `0x50`.
 A full power cut is the only known reset: after it, steady red reached the cooler again ([test record][test-record]).
 rgbctl never sends an output `0x01` command.
 *Observed:* a read-only GET_REPORT for input `0x01` returned the first 64 bytes of report `0x50`, so a read tells nothing about `0x01`.
 rgbctl writes none of these reports.
 
-## The mode 05 observation
+## ColorRing (mode 05)
 
-*Observed:* `rainbow` writes mode `05`, colour count `03`, style `95` (select-all, rainbow colours, brightness 5, speed medium).
-It showed many colours, but the devices were out of sync with each other, and each light was dark about as long as it was lit.
+`rgbctl rainbow` writes mode `05`, colour count `03`, style `95` (select-all, rainbow colours, brightness 5, speed medium).
+Mode `05` is ColorRing in MSI's own enum; no source describes its look, and no capture records MSI Center sending it.
 
-Mode `05` is ColorRing in MSI's own enum, so `rgbctl rainbow` sends MSI's ColorRing effect.
-No source describes what ColorRing looks like, and no capture records MSI Center sending it.
-Three documented facts bear on the observation:
+*Observed:* ColorRing is a chase along the chain.
+The colours run through the devices one after another in cable order, and each device starts just before the previous one finishes.
+At brightness 5 and medium speed it looked like many colours with the devices out of sync, each light dark about half the time; at brightness 1 and slow speed (style `84`) the chase was plain to see.
 
-1. The effect runs per header over the record's cycle number, which the board holds as 30 for every JARGB header, while MSI Center sets it from each header's detected LED count.
-2. The connected devices differ in length, and probably in generation: the Halo fans are Gen2 (below), and the cooler is likely plain ARGB.
-   That is an inference from Thermalright not mentioning Gen2; the other ports reported no Gen2 strip, but they were not in Gen2 mode, so that does not rule a Gen2 device out.
-3. MSI documents that a Gen1 device on a JARGB V2 header gets only Gen1 effects ([MSI FAQ 8624][faq-gen1]), that Gen1 and Gen2 devices should not be mixed on one header ([MSI FAQ 8626][faq-mix]), and that Gen2 devices support only 7 of the effects ([product page][msi-pro], which does not name them).
-
-An effect laid over 30 LEDs on chains of other lengths, each starting at its own first LED, would look out of step between devices.
-That is an inference from these facts, not a finding.
-
-No source names a mode that gives a steady colour cycle in step across devices.
 The per-zone records the board holds by default are mode `01` with rainbow colours at slow speed (`01 … 03 94 1e`).
 `rgbctl wave` without colours writes the same mode and colour source to the last record at its default medium speed (style `95`).
-*Observed:* that write gave the Halo fans a smooth moving rainbow; the cooler was then in the white state described in the test record, so its look under this effect is not established.
+*Observed:* from a clean state that write gave a smooth moving rainbow on every device, the cooler included.
 
 ## Connected devices
 
@@ -126,6 +120,7 @@ The test board has two ARGB devices connected:
   Thermalright lists 5 V 3-pin ARGB connectors and does not mention Gen2 ([Core Matrix 240][tr-core], [TL-K12][tr-k12]); no source gives the LED count of the pump or the fans.
 
 The MS-7E70 manual says each JARGB_V2 header takes ARGB Gen2 and ARGB strips, up to 180 LEDs at 3 A, and warns against mixing Gen1 and Gen2 strips on one header ([manual, JARGB_V2 section][msi-manual]).
+MSI's FAQs add that a Gen1 device on a JARGB V2 header gets only Gen1 effects ([FAQ 8624][faq-gen1]) and that Gen1 and Gen2 devices should not share a header ([FAQ 8626][faq-mix]); the product page says Gen2 devices support only 7 of the effects, without naming them ([product page][msi-pro]).
 Gen2 LEDs can report their count back to the controller; plain WS2812-style LEDs cannot ([Gen2 protocol analysis][gen2]).
 *Observed:* the controller reports 2 Gen2 strips on JARGB_V2_1, the Halo fans, and none on the other headers, so the Halo fans are Gen2 units ([test record][test-record]).
 

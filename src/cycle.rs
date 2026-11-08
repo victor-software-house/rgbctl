@@ -127,7 +127,7 @@ mod tests {
 
     /// Bytes 273 to 289 that an MS-7E70 read back after each volatile write
     /// of the 2026-11-08 hardware test, run in this order. Every read-back
-    /// verified. Rainbow's look is recorded in the README as unexplained.
+    /// verified. The README describes what `rainbow` looks like.
     #[test]
     fn plan_writes_what_the_board_read_back() {
         let rgb = |name: &str| name.parse::<Rgb>().unwrap();

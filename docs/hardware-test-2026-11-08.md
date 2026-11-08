@@ -49,6 +49,26 @@ The machine was then powered off completely.
 After the power cut the controller came up off, its saved state.
 `rgbctl static red` was sent with no output `0x01` command before it: the Halo fans and the cooler all turned red.
 
+## Third run: mode sweep after the power cut
+
+From 01:31 to 01:40, each mode was written to the all-zones record (record 17) as a raw report `0x50`, one at a time, with the save flag `00`.
+Every read-back matched, and a copy of report `0x50` was kept before the sweep.
+In order:
+
+| Sent to record 17 | Seen |
+|:--|:--|
+| `rgbctl wave` without colours (mode `01`, style `95`) | smooth on every device, the cooler included |
+| mode `03` Flame, rainbow colours | only red; the first palette slot was red, so whether Flame uses the palette is not shown |
+| mode `06` Lightning, user colours red, green, blue, white, style `b5` | far too bright and fast: red, then rapid flashes of the others |
+| mode `06`, style `a4` (brightness 1, speed slow) | dimmer and slower, so both fields apply |
+| mode `02`, brightness 1, colour values `30` | dim red, comfortable |
+| mode `07` Recreation, same level | dark or no change |
+| mode `08` Meteor | one colour at a time (red, green, blue, white, repeating), each running along the chain: Halo fans, then radiator fans, then pump head |
+| mode `0a` GodLike | dark or no change |
+| mode `05` ColorRing, rainbow colours, style `84` (brightness 1, slow) | not out of sync: the colours follow the chain, Halo fans, radiator fans, then pump head, each device starting just before the previous one finishes |
+
+The chain order is the cable order, not the devices' physical order in the case (Halo fans, pump head, radiator fans).
+
 ### Gen2 query replies
 
 Each command was a 64-byte output report: the 7 bytes shown, then zeros.
@@ -79,10 +99,17 @@ Byte 8 of port 0's `0x80` reply is `02`, which no source explains.
 3. No `0x51` per-LED write lit anything, including the full sequence SignalRGB runs for this board.
 4. With its select-all bit cleared, the Gen2 header's own steady record did not take effect; the Halo fans showed a rainbow.
 5. The controller stores `00` in byte 15 of records 4 to 17, whatever is written there.
+6. ColorRing (mode `05`, rgbctl's `rainbow`) is a chase along the chain in cable order; the first run's "out of sync, dark half the time" was that chase seen at full brightness and medium speed.
+7. In the effect modes the controller runs one effect along every device as a single chain: Halo fans, radiator fans, pump head.
+   That fits the cooler being chained behind the Halo fans on one header, but does not prove it.
+8. From a clean state the generated-colour wave is smooth on every device, so the wave write alone did not cause the white state.
+9. Recreation (`07`) and GodLike (`0a`) showed nothing; Flame (`03`), Lightning (`06`) and Meteor (`08`) run.
 
 ## Open questions
 
-- Which header the cooler is on, and how it is chained.
-- Whether `0x82` put the cooler in the white state, or the wave write at 00:46:25 did; nothing recorded tells them apart.
+- Which header the cooler is on: chained behind the Halo fans on JARGB_V2_1, as the chain order suggests, or on a header of its own.
+- Whether Flame uses the palette.
+- Whether `0x82` put the cooler in the white state.
+  The wave write from a clean state did not, which points at `0x82`, but `0x82` was never sent alone.
   rgbctl sends no output `0x01` command, and none is to be sent by hand without a decision.
 - Whether anything short of a power cut clears that state.

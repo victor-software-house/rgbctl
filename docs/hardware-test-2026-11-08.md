@@ -46,6 +46,8 @@ The input `0x01` read returned the first 64 bytes of report `0x50`.
 The device node disappeared about 26 s before the loop ended ("No such device"), when the controller was reset over USB.
 After the reset, report `0x50` was restored to its state before any test and `rgbctl static red` was sent: the Halo fans turned red, the cooler stayed white.
 The machine was then powered off completely.
+After the power cut the controller came up off, its saved state.
+`rgbctl static red` was sent with no output `0x01` command before it: the Halo fans and the cooler all turned red.
 
 ### Gen2 query replies
 
@@ -70,7 +72,8 @@ Byte 8 of port 0's `0x80` reply is `02`, which no source explains.
 
 1. The cooler took steady red in the first run and has been white since the second run began.
    The first commands of the second run were the `0x82` queries, followed 5 s later by a normal wave write.
-   The white state outlasted a USB reset of the controller and a restore of report `0x50`.
+   The white state outlasted a USB reset of the controller and a restore of report `0x50`, and cleared only after a full power cut.
+   So it was volatile controller or device state, not a saved setting.
 2. GET_REPORT `0x51` returns report `0x50` data: the first read returned `50 09 ff 00 …`, later reads the same data at a shifted offset.
    A `0x51` read-back therefore cannot confirm a per-LED write.
 3. No `0x51` per-LED write lit anything, including the full sequence SignalRGB runs for this board.
@@ -80,6 +83,6 @@ Byte 8 of port 0's `0x80` reply is `02`, which no source explains.
 ## Open questions
 
 - Which header the cooler is on, and how it is chained.
-- Whether the full power cut brings the cooler back to taking colours.
-- Whether `0x82` changed the cooler's state, or the wave write at 00:46:25 did.
-  `0x82`, `0x80` and `0x84` are not to be sent again without a decision.
+- Whether `0x82` put the cooler in the white state, or the wave write at 00:46:25 did; nothing recorded tells them apart.
+  rgbctl sends no output `0x01` command, and none is to be sent by hand without a decision.
+- Whether anything short of a power cut clears that state.

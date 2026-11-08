@@ -86,7 +86,9 @@ So MSI's software has a separate Gen2 path, per port, that carries a mode and an
 A live capture of MSI Center setting JARGB_V2_1 on the MS-7E75 showed only `0x50` traffic; it does not say what was connected to that header ([MB800 notes, lines 18 to 24][mb800-ui]).
 SignalRGB sends per-LED colours in `0x51` ([plugin, line 1138][srgb-colors]).
 *Observed:* GET_REPORT `0x51` returns report `0x50` data, so a `0x51` read-back cannot confirm a per-LED write, and no `0x51` write lit anything in the 2026-11-08 test, including SignalRGB's full sequence for this board.
-*Observed:* the cooler on this board turned white after the `0x82` queries and stayed white through a USB reset; see `docs/hardware-test-2026-11-08.md` before sending any output `0x01` command.
+*Observed:* the cooler on this board turned white after the `0x82` queries, or the wave write 5 s later, and stayed white through a USB reset and a restore of report `0x50`.
+A full power cut is the only known reset: after it, steady red reached the cooler again ([test record][test-record]).
+rgbctl never sends an output `0x01` command.
 *Observed:* a read-only GET_REPORT for input `0x01` returned the first 64 bytes of report `0x50`, so a read tells nothing about `0x01`.
 rgbctl writes none of these reports.
 
@@ -123,6 +125,7 @@ The MS-7E70 manual says each JARGB_V2 header takes ARGB Gen2 and ARGB strips, up
 Gen2 LEDs can report their count back to the controller; plain WS2812-style LEDs cannot ([Gen2 protocol analysis][gen2]).
 Whether the Halo fans on this board are Gen2 units is not established: that needs their manufacturing date or the controller's Gen2 strip count, which only an output-report command returns.
 
+[test-record]: hardware-test-2026-11-08.md
 [mb800]: https://github.com/Blamp26/boardcontrol/blob/5214ed92966bedae5a56383f3a50ea58f07150ce/docs/MSI_7E75_HID_MB800_STATIC_RE.md
 [mb800-gen1]: https://github.com/Blamp26/boardcontrol/blob/5214ed92966bedae5a56383f3a50ea58f07150ce/docs/MSI_7E75_HID_MB800_STATIC_RE.md#report--buffer-layout-table
 [mb800-fields]: https://github.com/Blamp26/boardcontrol/blob/5214ed92966bedae5a56383f3a50ea58f07150ce/docs/MSI_7E75_HID_MB800_STATIC_RE.md?plain=1#L99-L110

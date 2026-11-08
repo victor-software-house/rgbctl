@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use anyhow::{Context, Result, anyhow};
 
 use crate::cli::{Cli, Command, PresetArgs, WriteArgs};
-use crate::config::{Loaded, Search, user_config_dir};
+use crate::config::{self, Loaded, Search, user_config_dir};
 use crate::effect::Effect;
 use crate::outcome::Outcome;
 use crate::report::Persistence;
@@ -43,11 +43,19 @@ pub fn execute(cli: Cli) -> Result<Outcome> {
     }
 }
 
-/// Only the commands that read presets look for a config file, so the others
-/// run even from a working directory that no longer exists.
+/// Only the commands that read presets load a config file, and only a search
+/// for one reads the working directory. Every other command, and a preset
+/// command given an explicit file, runs from a working directory that no
+/// longer exists.
 fn load_config(explicit: Option<PathBuf>) -> Result<Loaded> {
+    if let Some(path) = explicit {
+        return Ok(Loaded {
+            config: config::load(&path)?,
+            path: Some(path),
+        });
+    }
     let search = Search {
-        explicit,
+        explicit: None,
         working_dir: env::current_dir().context("reading the working directory")?,
         user_config_dir: user_config_dir(
             env::var_os("XDG_CONFIG_HOME").map(PathBuf::from),

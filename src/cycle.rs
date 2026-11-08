@@ -1,6 +1,8 @@
 //! The write cycle's two pure steps: the report to send, and the check of what
 //! the controller reads back. The I/O between them lives in [`crate::run`].
 
+use std::fmt;
+
 use crate::effect::Effect;
 use crate::report::{FeatureReport, Persistence};
 
@@ -14,36 +16,63 @@ pub fn plan(before: &FeatureReport, effect: &Effect, persistence: Persistence) -
     next
 }
 
+/// One byte the controller read back differently from what was written.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Difference {
+    /// Offset in the report, the report id at 0.
+    pub offset: usize,
+    /// The byte written.
+    pub written: u8,
+    /// The byte read back.
+    pub read: u8,
+}
+
+impl fmt::Display for Difference {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(
+            f,
+            "offset {}: wrote {:#04x}, read {:#04x}",
+            self.offset, self.written, self.read
+        )
+    }
+}
+
 /// The controller reads back other bytes than were written.
 #[derive(Clone, Debug, PartialEq, Eq, thiserror::Error)]
-#[error(
-    "the controller read back different bytes at offsets {offsets:?}: wrote {written}, read {read} \
-     (bytes 273 to 289)"
-)]
+#[error("the controller read back different bytes: {}", list(differences))]
 pub struct Mismatch {
-    /// Offsets that differ, the save flag left out.
-    pub offsets: Vec<usize>,
-    /// Bytes 273 to 289 as written.
-    pub written: String,
-    /// Bytes 273 to 289 as read back.
-    pub read: String,
+    /// Every byte that differs, the save flag left out, in offset order.
+    pub differences: Vec<Difference>,
+}
+
+fn list(differences: &[Difference]) -> String {
+    differences
+        .iter()
+        .map(Difference::to_string)
+        .collect::<Vec<_>>()
+        .join("; ")
 }
 
 /// Compare the report read back after a write with the one written.
 ///
 /// # Errors
 ///
-/// [`Mismatch`] naming every offset that differs, the save flag left out.
+/// [`Mismatch`] naming every byte that differs, the save flag left out, with
+/// the value written and the value read.
 pub fn verify(written: &FeatureReport, read: &FeatureReport) -> Result<(), Mismatch> {
-    let offsets = written.differences(read);
-    if offsets.is_empty() {
+    let differences: Vec<Difference> = written
+        .differences(read)
+        .into_iter()
+        .map(|offset| Difference {
+            offset,
+            written: written.as_bytes()[offset],
+            read: read.as_bytes()[offset],
+        })
+        .collect();
+    if differences.is_empty() {
         Ok(())
     } else {
-        Err(Mismatch {
-            offsets,
-            written: written.owned_hex(),
-            read: read.owned_hex(),
-        })
+        Err(Mismatch { differences })
     }
 }
 
@@ -107,6 +136,20 @@ mod tests {
     fn verify_names_every_offset_that_differs() {
         let written = plan(&saved_off(), &red(), Persistence::Preview);
         let mismatch = verify(&written, &saved_off()).unwrap_err();
-        assert_eq!(mismatch.offsets, [273, 274, 277, 280, 283]);
+        let offsets: Vec<usize> = mismatch.differences.iter().map(|d| d.offset).collect();
+        assert_eq!(offsets, [273, 274, 277, 280, 283]);
+    }
+
+    #[test]
+    fn a_mismatch_outside_the_lighting_bytes_shows_both_values() {
+        let written = saved_off();
+        let mut bytes = *written.as_bytes();
+        bytes[12] = 0x01;
+        let read = FeatureReport::from_bytes(&bytes).unwrap();
+        let mismatch = verify(&written, &read).unwrap_err();
+        assert_eq!(
+            mismatch.to_string(),
+            "the controller read back different bytes: offset 12: wrote 0x00, read 0x01"
+        );
     }
 }

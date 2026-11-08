@@ -45,7 +45,12 @@ Defaults: brightness 5, speed medium, direction right.
   `--save` commits it to the controller's flash, which then survives power cycles.
 - Do not pass `--save` unless the operator asked for that setting to persist.
 - Every write reads report `0x50`, changes only bytes 273 to 287 and the save flag at 289, writes it, and reads it back.
-  A read-back that differs is an error naming the offsets.
+  A read-back that differs is an error naming each differing byte with the value written and the value read.
+
+## Rainbow
+
+`rainbow` is MSI's ColorRing: on the MS-7E70 the colours chase along the devices in header order (JARGB_V2_1, then V2_2, then V2_3; the direction setting reverses it), each device starting just before the previous one finishes, so at any moment some devices are dark.
+For a smooth moving rainbow on every device, use `wave` without colours.
 
 ## Config
 

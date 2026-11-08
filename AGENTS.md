@@ -16,11 +16,14 @@ The operator contract will be `rgbctl instructions` and `skills/rgbctl/SKILL.md`
    The ioctl calls live in one small module;
    each carries an item-level `#[expect(unsafe_code, reason = "…")]` and a `// SAFETY:` comment.
    `unsafe_code` stays `deny` everywhere else.
+   rgbctl sends no output report: after the `0x01` `0x82` queries, or the wave write 5 s later (a later clean-state wave did not repeat it), a connected cooler entered a state only a power cut cleared (`docs/hardware-test-2026-11-08.md`).
 3. **Report model.**
    Report `0x50` is 290 bytes, the id included.
    rgbctl owns bytes 273 to 287 (mode, four-colour palette, sub-parameter, packed style byte) and byte 289 (save flag).
    Every other byte is opaque and is written back exactly as read.
    The crate carries no template report.
+   The owned bytes are the last of 18 sixteen-byte zone records, the one that applies to all zones.
+   `docs/protocol.md` records the record layout, what each field and mode byte means, and the source of each fact; update it with every new finding.
 4. **Write cycle.**
    Read, decode, change the owned bytes, write, read back, compare.
    A read-back that differs from what was written outside the save flag is an error.
@@ -50,6 +53,8 @@ The operator contract will be `rgbctl instructions` and `skills/rgbctl/SKILL.md`
 - `src/instructions.md` (`rgbctl instructions`) and `skills/rgbctl/SKILL.md` are renders of `.ctl/operator/`: one shared `contract.md.jinja`, its command table from ctl-core's `Surface` over the Clap grammar, and the skill's `version` from `CARGO_PKG_VERSION`.
   `tests/it/docs.rs` byte-compares both committed files with the render; edit the templates, never the renders, and regenerate with `UPDATE_OPERATOR_DOCS=1 cargo test docs` in CI's toolchain.
 - `tests/fixtures/report-0x50-off.txt` is a read-back of a board saved as off, in the probe's `offset: bytes` format.
+- `docs/protocol.md` holds what is known about report `0x50`, its modes, and the connected devices, each fact with its source.
+- `docs/hardware-test-2026-11-08.md` records every write of the first hardware test and what was seen.
 - `PORTING.md` maps the reference script to this crate and lists every deliberate difference.
 - The repository setup comes from the shared Copier template (project type `rust-crate`); `.copier-answers.yml` records its tag.
   Local edits that survive updates: `Cargo.toml` sets `unsafe_code = "deny"` instead of `forbid`.

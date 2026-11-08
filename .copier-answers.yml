@@ -7,7 +7,9 @@ clippy_disallowed_types: []
 default_branch: main
 deny_bans: []
 deny_ignore: []
-deny_licenses: []
+deny_licenses:
+-   license: BSD-3-Clause
+    reason: encoding_rs, through serde-saphyr in ctl-core
 deny_skip: []
 feature_sets: []
 github_owner: victor-software-house

@@ -62,5 +62,5 @@ The characterization tests come from its behaviour and from a dump of report `0x
 
 ## Verification
 
-Tests run in the pull request's CI, not on a workstation.
+Tests run in the pull request's CI, not on a developer machine.
 Hardware checks on the board are listed in the pull request that records them.

@@ -53,36 +53,6 @@ The machine was then powered off completely.
 After the power cut the controller came up off, its saved state.
 `rgbctl static red` was sent with no output `0x01` command before it: the Halo fans and the cooler all turned red.
 
-## Third run: mode sweep after the power cut
-
-From 01:31 to 01:40, each mode was written to the all-zones record (record 17) as a raw report `0x50`, one at a time, with the save flag `00`.
-Every read-back matched, and a copy of report `0x50` was kept before the sweep.
-In order:
-
-| Sent to record 17 | Seen |
-|:--|:--|
-| `rgbctl wave` without colours (mode `01`, style `95`) | smooth on every device, the cooler included |
-| mode `03` Flame, rainbow colours | only red; the first palette slot was red, so whether Flame uses the palette is not shown |
-| mode `06` Lightning, user colours red, green, blue, white, style `b5` | far too bright and fast: red, then rapid flashes of the others |
-| mode `06`, style `a4` (brightness 1, speed slow) | dimmer and slower, so both fields apply |
-| mode `02`, brightness 1, colour values `30` | dim red, comfortable |
-| mode `07` Recreation, same level | dark or no change |
-| mode `08` Meteor | one colour at a time (red, green, blue, white, repeating), each running along the chain: Halo fans, then radiator fans, then pump head |
-| mode `0a` GodLike | dark or no change |
-| mode `05` ColorRing, rainbow colours, style `84` (brightness 1, slow) | not out of sync: the colours follow the chain, Halo fans, radiator fans, then pump head, each device starting just before the previous one finishes |
-
-The chain order is the header order, JARGB_V2_1, V2_2, V2_3 (fourth run), not the devices' physical order in the case (Halo fans, pump head, radiator fans).
-
-## Fourth run: per-LED from a clean state
-
-| Time | Sent | Seen |
-|:--|:--|:--|
-| 01:49:01 | Test G: SignalRGB's MS-7E70 sequence (the `0x50` setup, then the `0x51` loop at 10 Hz for 90 s), colour values `30`: JARGB_V2_1 red, V2_2 green, V2_3 blue, JAF_1 yellow | Halo fans red, radiator fans green, pump head blue; nothing yellow |
-| 01:58:45 | Test H: only JAF_1 (`0x51` type `08`) at `ffff00`, every ARGB header black, 180 s | nothing lit |
-
-So per-LED writes work on this board from a clean state, on the Gen2 header and the Gen1 headers alike, and JAF_1 is empty.
-Also after the power cut, ColorRing on records 0 and 2 with the select-all bit cleared (style `04`) ran side by side, and the direction bit (style bit 6) reversed the chain order.
-
 ### Gen2 query replies
 
 Each command was a 64-byte output report: the 7 bytes shown, then zeros.
@@ -102,6 +72,36 @@ Each reply was read from the input endpoint; the first 16 bytes are shown.
 Byte 7 of a `0x82` reply is the port's Gen2 strip count; byte 7 of a `0x80` reply is 1 when the port is in Gen2 mode.
 Byte 8 of port 0's `0x80` reply is `02`, which no source explains.
 
+## Third run: mode sweep after the power cut
+
+Each step wrote the all-zones record (record 17) as a raw report `0x50`, based on a copy of report `0x50` kept before the sweep, with the save flag `00`; every read-back matched.
+
+| Time | Sent to record 17 | Seen |
+|:--|:--|:--|
+| 01:30:45 | `rgbctl show`, then `rgbctl static red` | every device red, the cooler included |
+| 01:32:45 | `rgbctl wave` without colours (mode `01`, style `95`) | smooth on every device, the cooler included |
+| 01:33:14 | mode `03` Flame, rainbow colours | only red; the first palette slot was red, so whether Flame uses the palette is not shown |
+| 01:34:07 | mode `06` Lightning, user colours red, green, blue, white, style `b5` | far too bright and fast: red, then rapid flashes of the others |
+| 01:35:23 | mode `06`, style `a4` (brightness 1, speed slow) | dimmer and slower, so both fields apply |
+| 01:36:26 | mode `07` Recreation, brightness 1 | dark or no change |
+| 01:36:43 | mode `02`, brightness 1, colour values `30` | dim red, comfortable |
+| 01:37:02 | mode `08` Meteor | one colour at a time (red, green, blue, white, repeating), each running along the chain: Halo fans, then radiator fans, then pump head |
+| 01:39:46 | mode `0a` GodLike | dark or no change |
+| 01:40:18 | mode `05` ColorRing, rainbow colours, style `84` (brightness 1, slow) | not out of sync: the colours follow the chain, Halo fans, radiator fans, then pump head, each device starting just before the previous one finishes |
+
+## Fourth run: direction, per-header records and per-LED
+
+| Time | Sent | Read-back | Seen |
+|:--|:--|:--|:--|
+| 01:45:11 | Record 17: ColorRing with colours `30 00 00`, `00 30 00`, `00 00 30`, `30 30 30` and style `c4` (as at 01:40:18, with the direction bit, byte 14 bit 6, set) | record 17 `05 30 00 00 00 30 00 00 00 30 30 30 30 03 c4 00 00` | the chase ran reversed: pump head, radiator fans, then Halo fans |
+| 01:45:40 | Records 0 (JARGB_V2_1) and 2 (JARGB_V2_3): mode `05`, colour count `03`, style `04` (select-all cleared, rainbow colours, brightness 1, slow), byte 15 `1e`; record 17 left as at 01:45:11; records 1 and 3 left at mode `01`, style `94`, select-all set | records 0 and 2 `05 00 00 00 00 00 00 00 00 00 00 00 00 03 04 1e` | "both run, side by side": the Halo fans and the cooler chasing at the same time |
+| 01:49:00 | Test G: SignalRGB's MS-7E70 sequence (the `0x50` setup, then the `0x51` loop at 10 Hz for 90 s), colour values `30`: JARGB_V2_1 red, V2_2 green, V2_3 blue, JAF_1 yellow | — | Halo fans red, radiator fans green, pump head blue; nothing yellow |
+| 01:58:44 to 02:03:07 | Test H: only JAF_1 (`0x51` type `08`) at `ffff00`, every ARGB header black, stopped early | — | nothing lit |
+| 02:03:11 | Report `0x50` restored from the copy taken before any test (lights off) | all 290 bytes match | — |
+
+At 01:45:40 the radiator fans' header (V2_2) still had select-all set and followed record 17, so the "cooler" the operator saw chasing was the pump head on its own record plus the radiator fans on the all-zones record.
+The chain order is the header order, JARGB_V2_1, V2_2, V2_3, not the devices' physical order in the case (Halo fans, pump head, radiator fans), and per-LED writes work from a clean state on the Gen2 header and the Gen1 headers alike; JAF_1 is empty.
+
 ## What it showed
 
 1. The cooler took steady red in the first run and was white from the start of the second run until the power cut.
@@ -111,7 +111,7 @@ Byte 8 of port 0's `0x80` reply is `02`, which no source explains.
 2. GET_REPORT `0x51` returns report `0x50` data: the first read returned `50 09 ff 00 …`, later reads the same data at a shifted offset.
    A `0x51` read-back therefore cannot confirm a per-LED write.
 3. Per-LED writes (`0x51`) work from a clean state on both the Gen2 and the Gen1 headers (Test G); Tests B to D and F lit nothing because the board was in the white state.
-4. Per-header records with the select-all bit cleared work from a clean state: ColorRing on records 0 and 2 (style `04`) ran side by side. In the white state (Test E) the Halo fans showed a rainbow instead of their own steady record.
+4. Per-header records with the select-all bit cleared work from a clean state: ColorRing on records 0 and 2 (style `04`) ran side by side at 01:45:40. In the white state (Test E) the Halo fans showed a rainbow instead of their own steady record.
 5. The controller stores `00` in byte 15 of records 4 to 17, whatever is written there.
 6. ColorRing (mode `05`, rgbctl's `rainbow`) is a chase along the chain in header order; the first run's "out of sync, dark half the time" was that chase seen at full brightness and medium speed.
 7. In the effect modes the controller runs one effect along every header as a single chain, in header order JARGB_V2_1, V2_2, V2_3; the direction bit (style bit 6) reverses it.

@@ -1,0 +1,52 @@
+# Cargo.lock carries the version too, so a bump leaves it stale. `after`
+# regenerates it and `stage` puts it on the Version PR commit.
+prepare:
+  after: [cargo, update, --workspace]
+  stage: [Cargo.lock]
+
+# publish = false in Cargo.toml: the release is a tag, a GitHub Release, and
+# its tarballs, with no registry upload.
+packages:
+  - name: rgbctl
+    path: Cargo.toml
+    publisher: none
+
+# Hand-written version spellings outside Cargo.toml. Each is named once and
+# listed by the file that carries it; too few or too many stop the release.
+patterns:
+  skill:
+    match: "version: {version}"
+    occurrences: once
+
+pins:
+  - file: skills/rgbctl/SKILL.md
+    package: rgbctl
+    patterns: [skill]
+
+# The hosted x86_64 Linux machine, named so a target that is not built in
+# can choose it.
+runners:
+  x64:
+    labels: [ubuntu-latest]
+
+# One key per binary; the name is the job, the tarball, and the platform.
+# Both are static musl builds, so they run on any distribution, NixOS
+# included. linux-x64 is a built-in record that overrides only the triple.
+# linux-arm64 is not built in, so it states all four fields. It is
+# cross-built on x86_64 because the asset job runs verctl, which publishes
+# no arm64 Linux binary; .cargo/config.toml links it with rust-lld.
+assets:
+  linux-x64:
+    triple: x86_64-unknown-linux-musl
+  linux-arm64:
+    runner: x64
+    os: linux
+    arch: arm64
+    triple: aarch64-unknown-linux-musl
+
+# Maintainers and Apps a changelog never credits.
+changelog:
+  internal_authors:
+    - any-victor
+    - "github-actions[bot]"
+    - "vsh-changeset-version[bot]"

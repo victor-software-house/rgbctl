@@ -40,6 +40,10 @@ The operator contract will be `rgbctl instructions` and `skills/rgbctl/SKILL.md`
    The binary never escalates.
 9. **Releases are GitHub Release binaries only**, static musl builds for `x86_64` and `aarch64`.
    The crate is not published to crates.io (`publish = false`): it is a hardware tool for one controller, and its consumers install prebuilt binaries.
+   `.github/workflows/release.yml` calls verctl's reusable release workflow, and `.ctl/ver.yaml` declares the package with `publisher: none`, so a release is a tag, a GitHub Release, and two tarballs.
+   Each change that ships behaviour adds a `.changeset/` fragment; merging the Version PR releases.
+   Both tarballs build on an x86_64 runner, because the asset job runs verctl, which publishes no arm64 Linux binary.
+   `.cargo/config.toml` links the aarch64 musl target with rust-lld, which ships with rustc, so no cross toolchain is needed.
 
 ## Layout
 

@@ -102,7 +102,8 @@ No source describes what ColorRing looks like, and no capture records MSI Center
 Three documented facts bear on the observation:
 
 1. The effect runs per header over the record's cycle number, which the board holds as 30 for every JARGB header, while MSI Center sets it from each header's detected LED count.
-2. The connected devices differ in length and generation: the Halo fans are Gen2, the cooler is plain ARGB (below).
+2. The connected devices differ in length, and probably in generation: the Halo fans are Gen2 (below), and the cooler is likely plain ARGB.
+   That is an inference from Thermalright not mentioning Gen2; the other ports reported no Gen2 strip, but they were not in Gen2 mode, so that does not rule a Gen2 device out.
 3. MSI documents that a Gen1 device on a JARGB V2 header gets only Gen1 effects ([MSI FAQ 8624][faq-gen1]), that Gen1 and Gen2 devices should not be mixed on one header ([MSI FAQ 8626][faq-mix]), and that Gen2 devices support only 7 of the effects ([product page][msi-pro], which does not name them).
 
 An effect laid over 30 LEDs on chains of other lengths, each starting at its own first LED, would look out of step between devices.

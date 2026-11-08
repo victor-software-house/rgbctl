@@ -74,7 +74,8 @@ Byte 8 of port 0's `0x80` reply is `02`, which no source explains.
 
 ## Third run: mode sweep after the power cut
 
-Each step wrote the all-zones record (record 17) as a raw report `0x50`, based on a copy of report `0x50` kept before the sweep, with the save flag `00`; every read-back matched.
+The first two rows are rgbctl commands; the first is the post-power-cut `static red` described above.
+From 01:33:14 each step wrote the all-zones record (record 17) as a raw report `0x50`, based on a copy of report `0x50` kept before the sweep, with the save flag `00`; every read-back matched.
 
 | Time | Sent to record 17 | Seen |
 |:--|:--|:--|
@@ -93,7 +94,7 @@ Each step wrote the all-zones record (record 17) as a raw report `0x50`, based o
 
 | Time | Sent | Read-back | Seen |
 |:--|:--|:--|:--|
-| 01:45:11 | Record 17: ColorRing with colours `30 00 00`, `00 30 00`, `00 00 30`, `30 30 30` and style `c4` (as at 01:40:18, with the direction bit, byte 14 bit 6, set) | record 17 `05 30 00 00 00 30 00 00 00 30 30 30 30 03 c4 00 00` | the chase ran reversed: pump head, radiator fans, then Halo fans |
+| 01:45:11 | Record 17: ColorRing with colours `30 00 00`, `00 30 00`, `00 00 30`, `30 30 30` and style `c4` (as at 01:40:18, with the direction bit, byte 14 bit 6, set) | bytes 273 to 289, record 17 then the save flag: `05 30 00 00 00 30 00 00 00 30 30 30 30 03 c4 00` `00` | the chase ran reversed: pump head, radiator fans, then Halo fans |
 | 01:45:40 | Records 0 (JARGB_V2_1) and 2 (JARGB_V2_3): mode `05`, colour count `03`, style `04` (select-all cleared, rainbow colours, brightness 1, slow), byte 15 `1e`; record 17 left as at 01:45:11; records 1 and 3 left at mode `01`, style `94`, select-all set | records 0 and 2 `05 00 00 00 00 00 00 00 00 00 00 00 00 03 04 1e` | "both run, side by side": the Halo fans and the cooler chasing at the same time |
 | 01:49:00 | Test G: SignalRGB's MS-7E70 sequence (the `0x50` setup, then the `0x51` loop at 10 Hz for 90 s), colour values `30`: JARGB_V2_1 red, V2_2 green, V2_3 blue, JAF_1 yellow | — | Halo fans red, radiator fans green, pump head blue; nothing yellow |
 | 01:58:44 to 02:03:07 | Test H: only JAF_1 (`0x51` type `08`) at `ffff00`, every ARGB header black, stopped early | — | nothing lit |

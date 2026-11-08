@@ -1,7 +1,7 @@
 # Report 0x50 and its effects
 
 What is known about the controller's lighting report, and where each fact comes from.
-A fact marked *observed* was seen on an MS-7E70 in the 2026-11-08 hardware test; every other fact cites its source.
+A fact marked *observed* was seen on an MS-7E70 in the 2026-11-08 hardware test (`docs/hardware-test-2026-11-08.md` lists every write); every other fact cites its source.
 
 MSI's own Mystic Light code is the primary source.
 The boardcontrol project decompiled MSI Center's `LEDKeeper2.exe` (classes `MSI_LED.Class_MB_800` and `MSI_LED.MSI_800sLed`) and recorded the report layouts it builds ([MB800 notes][mb800]).
@@ -43,6 +43,7 @@ For the JARGB V2 headers and the JAF header, MSI Center's `GetCycleNumber` takes
 *Observed:* the board holds `1e` (30) as the cycle number of the JARGB and JAF records, and `00` in the last record.
 The JARGB, JAF and JRGB1 records hold mode `01` with rainbow colours and style `94`, so their select-all bit is set; the other records are zero.
 SignalRGB, in its own per-LED mode, writes `78` (120) as the JARGB cycle number and clears their select-all bit ([plugin, line 940][srgb-template]).
+*Observed:* the controller stores `00` in byte 15 of records 4 to 17 whatever is written there, and with its select-all bit cleared the Gen2 header's own steady record did not take effect.
 
 ## Modes
 
@@ -84,6 +85,8 @@ MSI's code uses them as follows ([MB800 notes, report tables][mb800-gen1]):
 So MSI's software has a separate Gen2 path, per port, that carries a mode and an LED count for each strip.
 A live capture of MSI Center setting JARGB_V2_1 on the MS-7E75 showed only `0x50` traffic; it does not say what was connected to that header ([MB800 notes, lines 18 to 24][mb800-ui]).
 SignalRGB sends per-LED colours in `0x51` ([plugin, line 1138][srgb-colors]).
+*Observed:* GET_REPORT `0x51` returns report `0x50` data, so a `0x51` read-back cannot confirm a per-LED write, and no `0x51` write lit anything in the 2026-11-08 test, including SignalRGB's full sequence for this board.
+*Observed:* the cooler on this board turned white after the `0x82` queries and stayed white through a USB reset; see `docs/hardware-test-2026-11-08.md` before sending any output `0x01` command.
 *Observed:* a read-only GET_REPORT for input `0x01` returned the first 64 bytes of report `0x50`, so a read tells nothing about `0x01`.
 rgbctl writes none of these reports.
 

@@ -53,6 +53,7 @@ The operator contract will be `rgbctl instructions` and `skills/rgbctl/SKILL.md`
   `tests/it/docs.rs` byte-compares both committed files with the render; edit the templates, never the renders, and regenerate with `UPDATE_OPERATOR_DOCS=1 cargo test docs` in CI's toolchain.
 - `tests/fixtures/report-0x50-off.txt` is a read-back of a board saved as off, in the probe's `offset: bytes` format.
 - `docs/protocol.md` holds what is known about report `0x50`, its modes, and the connected devices, each fact with its source.
+- `docs/hardware-test-2026-11-08.md` records every write of the first hardware test and what was seen.
 - `PORTING.md` maps the reference script to this crate and lists every deliberate difference.
 - The repository setup comes from the shared Copier template (project type `rust-crate`); `.copier-answers.yml` records its tag.
   Local edits that survive updates: `Cargo.toml` sets `unsafe_code = "deny"` instead of `forbid`.

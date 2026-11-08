@@ -18,7 +18,12 @@ Defaults: brightness 5, speed medium, direction right.
   `--save` commits it to the controller's flash, which then survives power cycles.
 - Do not pass `--save` unless the operator asked for that setting to persist.
 - Every write reads report `0x50`, changes only bytes 273 to 287 and the save flag at 289, writes it, and reads it back.
-  A read-back that differs is an error naming the offsets.
+  A read-back that differs is an error naming each differing byte with the value written and the value read.
+
+## Rainbow
+
+On the MS-7E70, `rainbow` shows many colours, with the devices out of sync and each light dark about as long as it is lit.
+Tell the operator this when they ask for a rainbow; `wave` with colours is the checked effect for moving colour.
 
 ## Config
 

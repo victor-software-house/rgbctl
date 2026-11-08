@@ -5,6 +5,14 @@ No MSI software, no OpenRGB, no Python, and no daemon:
 the controller keeps a saved setting itself.
 
 Status: in development; no release yet.
+Checked on an MS-7E70 on 2026-11-08, as volatile writes:
+`show`, `off`, `static`, `breathing`, and `wave` with colours behave as described on every connected device.
+`wave` without colours has not been checked yet.
+
+## Unexplained observation
+
+On the MS-7E70, `rainbow` shows many colours, but the devices are out of sync with each other, and each light is dark about as long as it is lit.
+This may be how the controller's rainbow works, or an impression from devices with different LED counts and layouts; no source explains it yet.
 
 ## Supported hardware
 

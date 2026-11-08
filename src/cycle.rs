@@ -80,7 +80,7 @@ pub fn verify(written: &FeatureReport, read: &FeatureReport) -> Result<(), Misma
 mod tests {
     use super::*;
     use crate::color::Rgb;
-    use crate::report::{Brightness, LIGHTING_BYTES, REPORT_ID, REPORT_LEN};
+    use crate::report::{Brightness, Direction, LIGHTING_BYTES, REPORT_ID, REPORT_LEN, Speed};
 
     fn saved_off() -> FeatureReport {
         let mut bytes = [0; REPORT_LEN];
@@ -122,6 +122,54 @@ mod tests {
         assert_eq!(
             next.owned_hex(),
             "02 ff 00 00 ff 00 00 ff 00 00 ff 00 00 00 b5 00 00"
+        );
+    }
+
+    /// Bytes 273 to 289 that an MS-7E70 read back after each volatile write
+    /// of the 2026-11-08 hardware test, run in this order. Every read-back
+    /// verified. Rainbow's look is recorded in the README as unexplained.
+    #[test]
+    fn plan_writes_what_the_board_read_back() {
+        let rgb = |name: &str| name.parse::<Rgb>().unwrap();
+        let wave = Effect::Wave {
+            colors: vec![rgb("red"), rgb("green"), rgb("blue")],
+            brightness: Brightness::MAX,
+            speed: Speed::Medium,
+            direction: Direction::Right,
+        };
+        let cases = [
+            (red(), "02 ff 00 00 ff 00 00 ff 00 00 ff 00 00 00 b5 00 00"),
+            (
+                Effect::Breathing {
+                    color: rgb("blue"),
+                    brightness: Brightness::MAX,
+                    speed: Speed::Medium,
+                },
+                "04 00 00 ff 00 00 ff 00 00 ff 00 00 ff 00 b5 00 00",
+            ),
+            (
+                wave.clone(),
+                "01 ff 00 00 00 ff 00 00 00 ff ff 00 00 03 b5 00 00",
+            ),
+            (
+                Effect::Off,
+                "00 00 00 00 00 00 00 00 00 00 00 00 00 00 b5 00 00",
+            ),
+        ];
+        for (effect, read_back) in cases {
+            let next = plan(&saved_off(), &effect, Persistence::Preview);
+            assert_eq!(next.owned_hex(), read_back, "{effect:?}");
+        }
+        // Rainbow keeps the palette it finds: the board held the wave's.
+        let after_wave = plan(&saved_off(), &wave, Persistence::Preview);
+        let rainbow = Effect::Rainbow {
+            brightness: Brightness::MAX,
+            speed: Speed::Medium,
+            direction: Direction::Right,
+        };
+        assert_eq!(
+            plan(&after_wave, &rainbow, Persistence::Preview).owned_hex(),
+            "05 ff 00 00 00 ff 00 00 00 ff ff 00 00 03 95 00 00"
         );
     }
 

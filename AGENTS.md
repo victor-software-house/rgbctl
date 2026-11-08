@@ -38,6 +38,21 @@ The operator contract will be `rgbctl instructions` and `skills/rgbctl/SKILL.md`
    Effects that need a running process, such as colour by CPU temperature, are out of scope.
 8. **Permissions** come from a udev rule granting a group access to the hidraw node (see `README.md`).
    The binary never escalates.
+9. **Releases are GitHub Release binaries only**, static musl builds for `x86_64` and `aarch64`.
+   The crate is not published to crates.io (`publish = false`): it is a hardware tool for one controller, and its consumers install prebuilt binaries.
+
+## Layout
+
+- `src/report.rs` models report `0x50`; `src/effect.rs` maps each effect to its bytes; `src/cycle.rs` plans a write and verifies the read-back.
+  These three and `src/config.rs` build and test on any platform.
+- `src/hidraw.rs` (Linux only) finds the node and holds the two ioctls.
+- `src/run.rs` runs each command; `src/outcome.rs` is what a command returns, as JSON and as a human document.
+- `src/instructions.md` (`rgbctl instructions`) and `skills/rgbctl/SKILL.md` are renders of `.ctl/operator/`: one shared `contract.md.jinja`, its command table from ctl-core's `Surface` over the Clap grammar, and the skill's `version` from `CARGO_PKG_VERSION`.
+  `tests/it/docs.rs` byte-compares both committed files with the render; edit the templates, never the renders, and regenerate with `UPDATE_OPERATOR_DOCS=1 cargo test docs` in CI's toolchain.
+- `tests/fixtures/report-0x50-off.txt` is a read-back of a board saved as off, in the probe's `offset: bytes` format.
+- `PORTING.md` maps the reference script to this crate and lists every deliberate difference.
+- The repository setup comes from the shared Copier template (project type `rust-crate`); `.copier-answers.yml` records its tag.
+  Local edits that survive updates: `Cargo.toml` sets `unsafe_code = "deny"` instead of `forbid`.
 
 ## Rules
 

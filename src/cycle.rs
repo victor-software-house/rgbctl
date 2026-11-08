@@ -75,7 +75,7 @@ mod tests {
         let before = saved_off();
         let next = plan(&before, &red(), Persistence::Preview);
         let changed = next.differences(&before);
-        assert!(!changed.is_empty());
+        assert_ne!(changed, Vec::<usize>::new());
         assert!(
             changed.iter().all(|at| LIGHTING_BYTES.contains(at)),
             "{changed:?}"

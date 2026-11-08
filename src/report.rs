@@ -464,7 +464,7 @@ mod tests {
             },
         });
         let changed = after.differences(&before);
-        assert!(!changed.is_empty());
+        assert_ne!(changed, Vec::<usize>::new());
         assert!(
             changed.iter().all(|at| LIGHTING_BYTES.contains(at)),
             "{changed:?}"
@@ -477,7 +477,7 @@ mod tests {
         let mut saved = before.clone();
         saved.set_persistence(Persistence::Save);
         assert_eq!(saved.as_bytes()[289], 0x01);
-        assert!(saved.differences(&before).is_empty());
+        assert_eq!(saved.differences(&before), Vec::<usize>::new());
         saved.set_persistence(Persistence::Preview);
         assert_eq!(saved, before);
     }

@@ -45,7 +45,7 @@ pub struct Config {
 fn names_a_preset(
     presets: &BTreeMap<String, Effect>,
 ) -> impl FnOnce(&Option<String>, &()) -> garde::Result + '_ {
-    move |default, _| match default {
+    move |default, ()| match default {
         Some(name) if !presets.contains_key(name) => Err(garde::Error::new(format!(
             "`{name}` is not one of the presets; add it under presets or name another"
         ))),
@@ -53,6 +53,10 @@ fn names_a_preset(
     }
 }
 
+#[expect(
+    clippy::trivially_copy_pass_by_ref,
+    reason = "garde passes the validation context by reference"
+)]
 fn presets_fit(presets: &BTreeMap<String, Effect>, _: &()) -> garde::Result {
     presets
         .iter()

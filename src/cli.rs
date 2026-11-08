@@ -18,8 +18,8 @@ use crate::report::{Brightness, Direction, Persistence, Speed};
     env_prefix = "RGBCTL"
 )]
 pub struct Cli {
-    /// Config file; defaults to the nearest .ctl/rgb.yaml, then
-    /// $XDG_CONFIG_HOME/ctl/rgb.yaml.
+    /// Config file; defaults to the nearest `.ctl/rgb.yaml`, then
+    /// `$XDG_CONFIG_HOME/ctl/rgb.yaml`.
     #[arg(long, global = true, value_hint = clap::ValueHint::FilePath)]
     pub config: Option<PathBuf>,
 
@@ -84,6 +84,7 @@ impl WriteArgs {
 #[derive(Debug, Args)]
 pub struct StaticArgs {
     /// #rrggbb, or red, green, blue, white, purple, cyan, yellow, orange, pink.
+    #[arg(id = "rgb", value_name = "COLOR")]
     pub color: Rgb,
     /// 1 to 5.
     #[arg(short, long, default_value_t)]
@@ -100,6 +101,7 @@ pub struct StaticArgs {
 #[derive(Debug, Args)]
 pub struct BreathingArgs {
     /// #rrggbb, or red, green, blue, white, purple, cyan, yellow, orange, pink.
+    #[arg(id = "rgb", value_name = "COLOR")]
     pub color: Rgb,
     /// 1 to 5.
     #[arg(short, long, default_value_t)]

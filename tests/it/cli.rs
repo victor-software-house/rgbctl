@@ -53,9 +53,9 @@ fn presets_lists_the_file_given_by_the_environment() {
         .output()
         .unwrap();
     assert!(output.status.success(), "{output:?}");
-    let text = String::from_utf8(output.stdout).unwrap();
-    assert!(text.contains(r#""default":"dark""#), "{text}");
-    assert!(text.contains(r#""effect":"off""#), "{text}");
+    let json: serde_json::Value = serde_json::from_slice(&output.stdout).unwrap();
+    assert_eq!(json["default"], "dark", "{json}");
+    assert_eq!(json["presets"]["dark"]["effect"], "off", "{json}");
 }
 
 #[test]

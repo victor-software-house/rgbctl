@@ -161,7 +161,7 @@ fn state_fields(state: &State) -> Fields {
     fields.row("bytes 273-289", Text::new().muted(&state.bytes))
 }
 
-/// The snake_case name serde gives a unit variant.
+/// The `snake_case` name serde gives a unit variant.
 fn name(value: &impl Serialize) -> String {
     serde_json::to_value(value)
         .ok()

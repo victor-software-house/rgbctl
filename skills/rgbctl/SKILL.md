@@ -49,7 +49,7 @@ Defaults: brightness 5, speed medium, direction right.
 
 ## Rainbow
 
-`rainbow` is MSI's ColorRing: on the MS-7E70 the colours chase along the devices in cable order, each device starting just before the previous one finishes, so at any moment some devices are dark.
+`rainbow` is MSI's ColorRing: on the MS-7E70 the colours chase along the devices in header order (JARGB_V2_1, then V2_2, then V2_3; the direction setting reverses it), each device starting just before the previous one finishes, so at any moment some devices are dark.
 For a smooth moving rainbow on every device, use `wave` without colours.
 
 ## Config

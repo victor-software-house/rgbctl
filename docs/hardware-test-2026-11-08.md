@@ -9,8 +9,12 @@ Every lighting write was volatile: the save flag stayed `00` throughout.
 
 - JARGB_V2_1: two Cooler Master MF120 Halo fans.
   The controller reports 2 Gen2 strips on this port.
-- The Thermalright Core Matrix 240 (pump head and two TL-K12 radiator fans) is on one data line.
-  Which header it sits on is not established; see the Open questions section.
+- JARGB_V2_2: the two TL-K12 radiator fans of the Thermalright Core Matrix 240.
+- JARGB_V2_3: the Core Matrix 240 pump head.
+- JAF_1: nothing connected.
+
+The second run assumed the whole cooler was on JARGB_V2_3; Test G in the fourth run established the map above.
+So Tests A to C wrote to the pump head's header, not the radiator fans'.
 
 ## First run: rgbctl's commands
 
@@ -67,7 +71,17 @@ In order:
 | mode `0a` GodLike | dark or no change |
 | mode `05` ColorRing, rainbow colours, style `84` (brightness 1, slow) | not out of sync: the colours follow the chain, Halo fans, radiator fans, then pump head, each device starting just before the previous one finishes |
 
-The chain order is the cable order, not the devices' physical order in the case (Halo fans, pump head, radiator fans).
+The chain order is the header order, JARGB_V2_1, V2_2, V2_3 (fourth run), not the devices' physical order in the case (Halo fans, pump head, radiator fans).
+
+## Fourth run: per-LED from a clean state
+
+| Time | Sent | Seen |
+|:--|:--|:--|
+| 01:49:01 | Test G: SignalRGB's MS-7E70 sequence (the `0x50` setup, then the `0x51` loop at 10 Hz for 90 s), colour values `30`: JARGB_V2_1 red, V2_2 green, V2_3 blue, JAF_1 yellow | Halo fans red, radiator fans green, pump head blue; nothing yellow |
+| 01:58:45 | Test H: only JAF_1 (`0x51` type `08`) at `ffff00`, every ARGB header black, 180 s | nothing lit |
+
+So per-LED writes work on this board from a clean state, on the Gen2 header and the Gen1 headers alike, and JAF_1 is empty.
+Also after the power cut, ColorRing on records 0 and 2 with the select-all bit cleared (style `04`) ran side by side, and the direction bit (style bit 6) reversed the chain order.
 
 ### Gen2 query replies
 
@@ -96,20 +110,19 @@ Byte 8 of port 0's `0x80` reply is `02`, which no source explains.
    So it was volatile controller or device state, not a saved setting.
 2. GET_REPORT `0x51` returns report `0x50` data: the first read returned `50 09 ff 00 …`, later reads the same data at a shifted offset.
    A `0x51` read-back therefore cannot confirm a per-LED write.
-3. No `0x51` per-LED write lit anything, including the full sequence SignalRGB runs for this board.
-4. With its select-all bit cleared, the Gen2 header's own steady record did not take effect; the Halo fans showed a rainbow.
+3. Per-LED writes (`0x51`) work from a clean state on both the Gen2 and the Gen1 headers (Test G); Tests B to D and F lit nothing because the board was in the white state.
+4. Per-header records with the select-all bit cleared work from a clean state: ColorRing on records 0 and 2 (style `04`) ran side by side. In the white state (Test E) the Halo fans showed a rainbow instead of their own steady record.
 5. The controller stores `00` in byte 15 of records 4 to 17, whatever is written there.
-6. ColorRing (mode `05`, rgbctl's `rainbow`) is a chase along the chain in cable order; the first run's "out of sync, dark half the time" was that chase seen at full brightness and medium speed.
-7. In the effect modes the controller runs one effect along every device as a single chain: Halo fans, radiator fans, pump head.
-   That fits the cooler being chained behind the Halo fans on one header, but does not prove it.
+6. ColorRing (mode `05`, rgbctl's `rainbow`) is a chase along the chain in header order; the first run's "out of sync, dark half the time" was that chase seen at full brightness and medium speed.
+7. In the effect modes the controller runs one effect along every header as a single chain, in header order JARGB_V2_1, V2_2, V2_3; the direction bit (style bit 6) reverses it.
 8. From a clean state the generated-colour wave is smooth on every device, so the wave write alone did not cause the white state.
 9. Recreation (`07`) and GodLike (`0a`) showed nothing; Flame (`03`), Lightning (`06`) and Meteor (`08`) run.
 
 ## Open questions
 
-- Which header the cooler is on: chained behind the Halo fans on JARGB_V2_1, as the chain order suggests, or on a header of its own.
 - Whether Flame uses the palette.
 - Whether `0x82` put the cooler in the white state.
   The wave write from a clean state did not, which points at `0x82`, but `0x82` was never sent alone.
   rgbctl sends no output `0x01` command, and none is to be sent by hand without a decision.
 - Whether anything short of a power cut clears that state.
+- Whether per-LED colours stay on the devices after the sender stops.

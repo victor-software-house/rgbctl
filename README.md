@@ -12,7 +12,7 @@ Checked on an MS-7E70 on 2026-11-08, as volatile writes:
 ## What `rainbow` looks like
 
 `rainbow` sends the mode MSI's own software calls ColorRing (`05`).
-On the MS-7E70 it is a chase: the colours run along the devices one after another, in the order the cables chain them, and each device starts just before the previous one finishes.
+On the MS-7E70 it is a chase: the colours run along the devices one after another, header by header (JARGB_V2_1, then V2_2, then V2_3; the direction setting reverses it), and each device starts just before the previous one finishes.
 At full brightness and medium speed that reads as devices out of sync, each dark about half the time; dim and slow, the chase is easy to follow.
 `docs/protocol.md` collects what is known about the report, the modes, and the connected devices, with sources.
 

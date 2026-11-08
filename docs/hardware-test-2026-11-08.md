@@ -70,7 +70,7 @@ Byte 8 of port 0's `0x80` reply is `02`, which no source explains.
 
 ## What it showed
 
-1. The cooler took steady red in the first run and has been white since the second run began.
+1. The cooler took steady red in the first run and was white from the start of the second run until the power cut.
    The first commands of the second run were the `0x82` queries, followed 5 s later by a normal wave write.
    The white state outlasted a USB reset of the controller and a restore of report `0x50`, and cleared only after a full power cut.
    So it was volatile controller or device state, not a saved setting.

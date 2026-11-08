@@ -16,7 +16,7 @@ The operator contract will be `rgbctl instructions` and `skills/rgbctl/SKILL.md`
    The ioctl calls live in one small module;
    each carries an item-level `#[expect(unsafe_code, reason = "…")]` and a `// SAFETY:` comment.
    `unsafe_code` stays `deny` everywhere else.
-   rgbctl sends no output report: the `0x01` commands put a connected cooler in a state only a power cut cleared (`docs/hardware-test-2026-11-08.md`).
+   rgbctl sends no output report: after the `0x01` `0x82` queries, or the wave write 5 s later (the test cannot tell them apart), a connected cooler entered a state only a power cut cleared (`docs/hardware-test-2026-11-08.md`).
 3. **Report model.**
    Report `0x50` is 290 bytes, the id included.
    rgbctl owns bytes 273 to 287 (mode, four-colour palette, sub-parameter, packed style byte) and byte 289 (save flag).

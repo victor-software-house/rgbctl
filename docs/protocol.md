@@ -102,28 +102,31 @@ No source describes what ColorRing looks like, and no capture records MSI Center
 Three documented facts bear on the observation:
 
 1. The effect runs per header over the record's cycle number, which the board holds as 30 for every JARGB header, while MSI Center sets it from each header's detected LED count.
-2. The two headers carry devices of different lengths and generations (below).
+2. The connected devices differ in length and generation: the Halo fans are Gen2, the cooler is plain ARGB (below).
 3. MSI documents that a Gen1 device on a JARGB V2 header gets only Gen1 effects ([MSI FAQ 8624][faq-gen1]), that Gen1 and Gen2 devices should not be mixed on one header ([MSI FAQ 8626][faq-mix]), and that Gen2 devices support only 7 of the effects ([product page][msi-pro], which does not name them).
 
 An effect laid over 30 LEDs on chains of other lengths, each starting at its own first LED, would look out of step between devices.
 That is an inference from these facts, not a finding.
 
 No source names a mode that gives a steady colour cycle in step across devices.
-The per-zone records the board holds by default are mode `01` with rainbow colours (`01 … 03 94 1e`), which is what `rgbctl wave` without colours writes; it is not yet checked on the board.
+The per-zone records the board holds by default are mode `01` with rainbow colours at slow speed (`01 … 03 94 1e`).
+`rgbctl wave` without colours writes the same mode and colour source to the last record at its default medium speed (style `95`).
+*Observed:* that write gave the Halo fans a smooth moving rainbow; the cooler was then in the white state described in the test record, so its look under this effect is not established.
 
 ## Connected devices
 
-The test board drives two headers:
+The test board has two ARGB devices connected:
 
 - JARGB_V2_1: two Cooler Master MF120 Halo fans, chained.
   Each has 24 LEDs, and units made after 1 June 2021 are Addressable Gen 2 RGB ([Cooler Master specification][cm-halo]).
   OpenRGB's sizing table lists the Halo as 24 LEDs wired in parallel ([OpenRGB resize guide][orgb-resize]); whether the chained second fan repeats the first's data or continues it is not established.
-- JARGB_V2_3: a Thermalright Core Matrix 240, its pump head and two TL-K12 radiator fans on one cable.
+- A Thermalright Core Matrix 240, its pump head and two TL-K12 radiator fans on one data line.
+  Which header it is on is not established: the 2026-11-08 tests that targeted the JARGB_V2_3 record assumed it ([test record][test-record]).
   Thermalright lists 5 V 3-pin ARGB connectors and does not mention Gen2 ([Core Matrix 240][tr-core], [TL-K12][tr-k12]); no source gives the LED count of the pump or the fans.
 
 The MS-7E70 manual says each JARGB_V2 header takes ARGB Gen2 and ARGB strips, up to 180 LEDs at 3 A, and warns against mixing Gen1 and Gen2 strips on one header ([manual, JARGB_V2 section][msi-manual]).
 Gen2 LEDs can report their count back to the controller; plain WS2812-style LEDs cannot ([Gen2 protocol analysis][gen2]).
-Whether the Halo fans on this board are Gen2 units is not established: that needs their manufacturing date or the controller's Gen2 strip count, which only an output-report command returns.
+*Observed:* the controller reports 2 Gen2 strips on JARGB_V2_1, the Halo fans, and none on the other headers, so the Halo fans are Gen2 units ([test record][test-record]).
 
 [test-record]: hardware-test-2026-11-08.md
 [mb800]: https://github.com/Blamp26/boardcontrol/blob/5214ed92966bedae5a56383f3a50ea58f07150ce/docs/MSI_7E75_HID_MB800_STATIC_RE.md

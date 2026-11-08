@@ -8,7 +8,7 @@ description: >-
   mentions rgbctl, Mystic Light, motherboard ARGB or RGB lighting, case fan
   or pump LEDs on an MSI board, or USB 0db0:0076.
 license: MIT
-version: 0.0.0
+version: 0.0.1
 compatibility: Requires an rgbctl binary on Linux and read-write access to the controller's hidraw node.
 ---
 

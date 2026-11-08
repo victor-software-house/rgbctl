@@ -43,7 +43,7 @@ The operator contract will be `rgbctl instructions` and `skills/rgbctl/SKILL.md`
 
 ## Layout
 
-- `src/report.rs` models report `0x50`; `src/effect.rs` maps each effect to its bytes; `src/write.rs` plans a write and verifies the read-back.
+- `src/report.rs` models report `0x50`; `src/effect.rs` maps each effect to its bytes; `src/cycle.rs` plans a write and verifies the read-back.
   These three and `src/config.rs` build and test on any platform.
 - `src/hidraw.rs` (Linux only) finds the node and holds the two ioctls.
 - `src/run.rs` runs each command; `src/outcome.rs` is what a command returns, as JSON and as a human document.

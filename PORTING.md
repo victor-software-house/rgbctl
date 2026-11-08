@@ -15,7 +15,7 @@ It ports what the script sends, not how the script is built.
 | `_param()`, `_PARAM_IDX` | `report::Style` with `TryFrom<u8>` and `From<Style> for u8`, byte 287 |
 | `_SAVE_IDX`, `guardar` | `report::Persistence`, byte 289 |
 | `_template()`, `_TEMPLATE_HEX` | none: `hidraw::Controller::read` returns the controller's own report |
-| `set_argb()` | `write::plan`, then `Controller::write`, then `write::verify` |
+| `set_argb()` | `cycle::plan`, then `Controller::write`, then `cycle::verify` |
 | `find_device()` | `hidraw::find` |
 | `HIDIOCSFEATURE` lambda | `hidraw` `SET_FEATURE`, and `GET_FEATURE` for reads |
 | `COLORS`, `_color()` | `color::NAMED`, `Rgb::from_str` |

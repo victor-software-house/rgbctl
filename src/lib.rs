@@ -3,7 +3,7 @@
 //!
 //! The controller keeps its whole lighting state in HID feature report
 //! `0x50` ([`report`]). Every write reads that report, changes only the bytes
-//! rgbctl owns, writes it back, and reads it again to verify ([`write`]).
+//! rgbctl owns, writes it back, and reads it again to verify ([`cycle`]).
 //! A write is a preview unless it sets the save flag.
 //!
 //! The binary is the product; this library exists so its parts are tested
@@ -12,10 +12,10 @@
 pub mod cli;
 pub mod color;
 pub mod config;
+pub mod cycle;
 pub mod effect;
 #[cfg(target_os = "linux")]
 pub mod hidraw;
 pub mod outcome;
 pub mod report;
 pub mod run;
-pub mod write;

@@ -83,10 +83,10 @@ mod device {
     use anyhow::Result;
 
     use super::Persistence;
+    use crate::cycle::{plan, verify};
     use crate::effect::Effect;
     use crate::hidraw::Controller;
     use crate::outcome::{Outcome, State};
-    use crate::write::{plan, verify};
 
     pub(super) fn show() -> Result<Outcome> {
         let (controller, report) = Controller::open(Path::new("/sys"))?;

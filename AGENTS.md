@@ -21,12 +21,8 @@ The operator contract will be `rgbctl instructions` and `skills/rgbctl/SKILL.md`
    rgbctl owns bytes 273 to 287 (mode, four-colour palette, sub-parameter, packed style byte) and byte 289 (save flag).
    Every other byte is opaque and is written back exactly as read.
    The crate carries no template report.
-   Bytes 1 to 288 are 18 records of 16 bytes: mode, four colours, sub-parameter, style byte, and one more byte.
-   OpenRGB's `MSIMotherboard761Controller` names them JARGB 1 to 3, JAF, JPIPE 1 to 5, JRGB 1 and 2, onboard 1 to 6, and a last record it marks "Select all?".
-   Writing that last record changed every connected device in the 2026-11-08 hardware test.
-   rgbctl writes only that last record, and only its bytes 273 to 287; its byte 288 is left as read, while the JARGB and JAF records hold `1e` there.
-   The report descriptor declares report `0x01` as a 63-byte input and output report, not a feature report.
-   A read-only GET_REPORT for input `0x01` returns the first 64 bytes of report `0x50`, so a read tells nothing about it; rgbctl never writes it.
+   The owned bytes are the last of 18 sixteen-byte zone records, the one that applies to all zones.
+   `docs/protocol.md` records the record layout, what each field and mode byte means, and the source of each fact; update it with every new finding.
 4. **Write cycle.**
    Read, decode, change the owned bytes, write, read back, compare.
    A read-back that differs from what was written outside the save flag is an error.
@@ -56,6 +52,7 @@ The operator contract will be `rgbctl instructions` and `skills/rgbctl/SKILL.md`
 - `src/instructions.md` (`rgbctl instructions`) and `skills/rgbctl/SKILL.md` are renders of `.ctl/operator/`: one shared `contract.md.jinja`, its command table from ctl-core's `Surface` over the Clap grammar, and the skill's `version` from `CARGO_PKG_VERSION`.
   `tests/it/docs.rs` byte-compares both committed files with the render; edit the templates, never the renders, and regenerate with `UPDATE_OPERATOR_DOCS=1 cargo test docs` in CI's toolchain.
 - `tests/fixtures/report-0x50-off.txt` is a read-back of a board saved as off, in the probe's `offset: bytes` format.
+- `docs/protocol.md` holds what is known about report `0x50`, its modes, and the connected devices, each fact with its source.
 - `PORTING.md` maps the reference script to this crate and lists every deliberate difference.
 - The repository setup comes from the shared Copier template (project type `rust-crate`); `.copier-answers.yml` records its tag.
   Local edits that survive updates: `Cargo.toml` sets `unsafe_code = "deny"` instead of `forbid`.

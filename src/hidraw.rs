@@ -196,13 +196,13 @@ struct Feature<'a> {
     buffer: &'a mut [u8; REPORT_LEN],
 }
 
-// SAFETY: both opcodes encode the buffer's exact size, `REPORT_LEN`, so the
-// kernel reads and writes at most `REPORT_LEN` bytes through the pointer,
-// which stays valid and exclusively borrowed for the call.
 #[expect(
     unsafe_code,
     reason = "implementing rustix's Ioctl is the only way to keep the byte count"
 )]
+// SAFETY: both opcodes encode the buffer's exact size, `REPORT_LEN`, so the
+// kernel reads and writes at most `REPORT_LEN` bytes through the pointer,
+// which stays valid and exclusively borrowed for the call.
 unsafe impl Ioctl for Feature<'_> {
     type Output = usize;
 

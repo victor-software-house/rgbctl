@@ -13,7 +13,7 @@ lockfile_platforms = ["linux-x64", "macos-arm64"]
 [tool_config]
 locked = true
 
-# The toolchain lives here, not in mise.dev.toml, because CI loads only
+# The toolchain lives here instead of in mise.dev.toml, because CI loads only
 # MISE_ENV=ci. The stable pin equals rust-toolchain.toml and rust-version.
 [tools]
 rust = [
@@ -63,8 +63,8 @@ includes = [
   "mise-tasks",
   # The ver task the release workflow and check:versions run; it pins the verctl above.
   "git::https://github.com/victor-software-house/verctl.git//tasks/ver?ref=v0.7.2",
-  # The shared Rust tasks, at actions main, 2026-11-05.
-  "git::https://github.com/victor-software-house/actions.git//tasks/rust.toml?ref=ca84425f5597bc5fd59e5614d0cf1f2f06194377",
-  # template:check, template:off, and template:on, at actions main, 2026-11-05.
-  "git::https://github.com/victor-software-house/actions.git//tasks/template.toml?ref=ca84425f5597bc5fd59e5614d0cf1f2f06194377",
+  # The shared Rust tasks, at actions main, 2026-11-09.
+  "git::https://github.com/victor-software-house/actions.git//tasks/rust.toml?ref=dec9ec1aaa6b08b1424deb891c88ee50dd26da07",
+  # template:check, template:off, and template:on, at actions main, 2026-11-09.
+  "git::https://github.com/victor-software-house/actions.git//tasks/template.toml?ref=dec9ec1aaa6b08b1424deb891c88ee50dd26da07",
 ]

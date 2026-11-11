@@ -14,22 +14,25 @@ permissions:
 
 concurrency:
   # A draft run gets a group of its own, so it never cancels the ready run.
-  group: ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number || github.ref_name }}${{ github.event.pull_request.draft && '-draft' || '' }}
+  group: >-
+    ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.event.pull_request.number ||
+    github.ref_name }}${{ github.event.pull_request.draft && '-draft' || '' }}
   cancel-in-progress: true
 
 jobs:
   verify:
     if: ${{ !github.event.pull_request.draft }}
-    # The shared jobs that install tools trade the job's OIDC token for a
-    # release mirror session token.
+    # The shared jobs that install tools download through the release mirror:
+    # they exchange the job's OIDC token for a session token, with the
+    # organization's mirror key, so the caller grants id-token: write.
     permissions:
       actions: read
       contents: read
       id-token: write
       pull-requests: read
-    uses: victor-software-house/actions/.github/workflows/rust-ci.yml@d6ce82bb1fe3a3bac6c68619c603993c08990d64 # main, 2026-11-09
+    uses: victor-software-house/actions/.github/workflows/rust-ci.yml@4168002fe58fd0b310bd2b65f9db2262fc0e21d3 # main, 2026-11-11
     with:
-      mise-version: 2026.11.1
+      mise-version: 2026.11.6
       advisories: true
       semver: false
       timeout-minutes: 8
@@ -37,3 +40,6 @@ jobs:
       read-only-runner: '["ubuntu-latest"]'
       light-runner: ubuntu-latest
       cache-volume: false
+    secrets:
+      RELEASE_MIRROR_URL: ${{ secrets.RELEASE_MIRROR_URL }}
+      RELEASE_MIRROR_CI_KEY: ${{ secrets.RELEASE_MIRROR_CI_KEY }}

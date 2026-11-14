@@ -2,9 +2,10 @@
 //! templates under `.ctl/operator/`, with the command table taken from the
 //! Clap grammar. Regenerate both with `UPDATE_OPERATOR_DOCS=1`.
 
-use std::fs;
 use std::path::Path;
+use std::{env, fs};
 
+use ctl_core::surface;
 use minijinja::{Value, context};
 use rgbctl::cli::Cli;
 
@@ -16,8 +17,8 @@ fn crate_file(relative: &str) -> String {
 }
 
 fn render(template: &str, context: &Value) -> String {
-    let mut environment = ctl_core::surface::environment()
-        .unwrap_or_else(|error| panic!("operator environment: {error}"));
+    let mut environment =
+        surface::environment().unwrap_or_else(|error| panic!("operator environment: {error}"));
     environment
         .add_template_owned("rgbctl/contract.md.jinja", crate_file(CONTRACT))
         .unwrap_or_else(|error| panic!("parse {CONTRACT}: {error}"));
@@ -30,7 +31,7 @@ fn render(template: &str, context: &Value) -> String {
 
 fn assert_committed(relative: &str, rendered: &str) {
     let path = Path::new(env!("CARGO_MANIFEST_DIR")).join(relative);
-    if std::env::var_os("UPDATE_OPERATOR_DOCS").is_some() {
+    if env::var_os("UPDATE_OPERATOR_DOCS").is_some() {
         fs::write(&path, rendered).unwrap_or_else(|error| panic!("write {relative}: {error}"));
     }
     assert_eq!(rendered, crate_file(relative), "{relative} is stale");

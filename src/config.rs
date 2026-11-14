@@ -142,6 +142,8 @@ pub fn user_config_dir(xdg_config_home: Option<PathBuf>, home: Option<PathBuf>) 
 
 #[cfg(test)]
 mod tests {
+    use std::fs;
+
     use ctl_core::indoc;
 
     use super::*;
@@ -249,13 +251,13 @@ mod tests {
     fn the_nearest_repo_file_wins_over_the_user_file() {
         let root = tempfile::tempdir().unwrap();
         let nested = root.path().join("a/b");
-        std::fs::create_dir_all(nested.join(".ctl")).unwrap();
-        std::fs::create_dir_all(root.path().join(".ctl")).unwrap();
-        std::fs::create_dir_all(root.path().join("xdg/ctl")).unwrap();
+        fs::create_dir_all(nested.join(".ctl")).unwrap();
+        fs::create_dir_all(root.path().join(".ctl")).unwrap();
+        fs::create_dir_all(root.path().join("xdg/ctl")).unwrap();
         for dir in [root.path(), &nested] {
-            std::fs::write(dir.join(REPO_FILE), "{}").unwrap();
+            fs::write(dir.join(REPO_FILE), "{}").unwrap();
         }
-        std::fs::write(root.path().join("xdg").join(USER_FILE), "{}").unwrap();
+        fs::write(root.path().join("xdg").join(USER_FILE), "{}").unwrap();
         let search = Search {
             explicit: None,
             working_dir: nested.join("deeper"),
@@ -267,8 +269,8 @@ mod tests {
     #[test]
     fn the_user_file_applies_when_no_repo_file_exists() {
         let root = tempfile::tempdir().unwrap();
-        std::fs::create_dir_all(root.path().join("xdg/ctl")).unwrap();
-        std::fs::write(root.path().join("xdg").join(USER_FILE), "{}").unwrap();
+        fs::create_dir_all(root.path().join("xdg/ctl")).unwrap();
+        fs::write(root.path().join("xdg").join(USER_FILE), "{}").unwrap();
         let search = Search {
             explicit: None,
             working_dir: root.path().join("work"),

@@ -1,5 +1,7 @@
 //! The binary's machine output.
 
+use std::fs;
+
 use ctl_core::indoc;
 
 use crate::common::rgbctl;
@@ -37,7 +39,7 @@ fn a_parse_error_in_json_mode_carries_no_colour_codes() {
 fn presets_lists_the_file_given_by_the_environment() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("rgb.yaml");
-    std::fs::write(
+    fs::write(
         &path,
         indoc! {"
             default: dark
@@ -62,7 +64,7 @@ fn presets_lists_the_file_given_by_the_environment() {
 fn a_preset_that_does_not_exist_is_refused_before_any_device_access() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().join("rgb.yaml");
-    std::fs::write(&path, "presets: {}\n").unwrap();
+    fs::write(&path, "presets: {}\n").unwrap();
     let output = rgbctl()
         .args(["preset", "nope", "--config"])
         .arg(&path)

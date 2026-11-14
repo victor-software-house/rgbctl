@@ -1,19 +1,20 @@
 name: Release
 
 # verctl's reusable release workflow, on every push to main and on demand.
-# It plans every version commit not yet fully released and publishes each at
-# that commit: a tag and a GitHub Release with no registry upload
-# (publisher: none), then the static musl tarballs .ctl/ver.yaml declares.
-# Then it opens or updates the Version PR on verctl/release/main.
+# It releases, from HEAD, each version HEAD holds whose release is incomplete:
+# a draft GitHub Release with the static musl tarballs .ctl/ver.yaml declares,
+# then the published Release, which creates the tag, with no registry upload
+# (publisher: none). Then it opens or updates the Version PR on
+# verctl/release/main.
 on:
   push:
     branches: [main]
   workflow_dispatch:
 
 # One release run at a time. A newer run waits instead of cancelling one that
-# may be publishing; it plans every unreleased version commit, so the queued
-# run covers what any skipped one would have. The "-caller" part keeps this
-# group apart from the called workflow's own group.
+# may be publishing; it releases every incomplete version at HEAD, so the
+# queued run covers what any skipped one would have. The "-caller" part keeps
+# this group apart from the called workflow's own group.
 concurrency:
   group: ${{ github.workflow }}-caller-${{ github.ref }}
   cancel-in-progress: false
@@ -26,12 +27,10 @@ jobs:
       contents: write # tags, Releases, assets, and verctl/release/main without the App
       pull-requests: write # the Version PR without the App
       id-token: write # the reusable workflow's publish job requests it
-    uses: victor-software-house/verctl/.github/workflows/release.yml@ff96452d1efb4cb2657a1d70af68984bd2fab601 # v0.7.2
+    uses: victor-software-house/verctl/.github/workflows/release.yml@fd46e7e62a7020295fa967f00f21bdf274f5218c # v0.8.6-rc.3
     with:
       mise-version: 2026.11.6
       mise-env: ci
-      # Nothing goes to crates.io, so there is no docs.rs page to wait for.
-      docs: false
     # The App token opens the Version PR so that its CI starts; a PR opened
     # with GITHUB_TOKEN starts no workflow.
     secrets:

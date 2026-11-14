@@ -33,6 +33,9 @@ deny = [
     { crate = "openssl", reason = "TLS is rustls" },
     { crate = "native-tls", reason = "TLS is rustls" },
 ]
+skip = [
+    { crate = "syn@2", reason = "garde_derive 0.23.0, the latest release, requires syn 2" },
+]
 
 # Declarations repeated outside [workspace.dependencies], and unused entries.
 [bans.workspace-dependencies]

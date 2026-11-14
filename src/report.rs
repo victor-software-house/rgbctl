@@ -5,8 +5,9 @@
 //! exactly as the controller returned it. The layout comes from USB captures
 //! of MSI Center, decoded by the reference script `rgb-placa.py`.
 
-use std::fmt;
 use std::ops::RangeInclusive;
+use std::str::FromStr;
+use std::{array, fmt};
 
 use serde::{Deserialize, Serialize};
 
@@ -87,7 +88,7 @@ impl FeatureReport {
     /// fail even when the rest of the lighting bytes do not decode.
     #[must_use]
     pub fn palette(&self) -> [Rgb; PALETTE_SLOTS] {
-        std::array::from_fn(|slot| {
+        array::from_fn(|slot| {
             let at = PALETTE + slot * 3;
             Rgb::from_bytes([self.0[at], self.0[at + 1], self.0[at + 2]])
         })
@@ -346,7 +347,7 @@ impl From<Brightness> for u8 {
     }
 }
 
-impl std::str::FromStr for Brightness {
+impl FromStr for Brightness {
     type Err = String;
 
     fn from_str(text: &str) -> Result<Self, Self::Err> {

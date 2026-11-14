@@ -4,11 +4,13 @@
 //! Plain ioctls keep the binary free of C libraries (hidapi, libusb,
 //! libudev), so a static musl build runs on any Linux.
 
+use std::ffi::c_void;
 use std::fs::{self, File, OpenOptions};
 use std::io;
 use std::path::{Path, PathBuf};
 
-use rustix::ioctl::{Ioctl, IoctlOutput, Opcode, opcode};
+use rustix::io::Errno;
+use rustix::ioctl::{self, Ioctl, IoctlOutput, Opcode, opcode};
 
 use crate::report::{FeatureReport, REPORT_LEN, ReportError};
 
@@ -212,16 +214,13 @@ unsafe impl Ioctl for Feature<'_> {
         self.opcode
     }
 
-    fn as_ptr(&mut self) -> *mut std::ffi::c_void {
+    fn as_ptr(&mut self) -> *mut c_void {
         self.buffer.as_mut_ptr().cast()
     }
 
     #[expect(unsafe_code, reason = "the trait declares this method unsafe")]
-    unsafe fn output_from_ptr(
-        output: IoctlOutput,
-        _: *mut std::ffi::c_void,
-    ) -> rustix::io::Result<usize> {
-        usize::try_from(output).ok().ok_or(rustix::io::Errno::RANGE)
+    unsafe fn output_from_ptr(output: IoctlOutput, _: *mut c_void) -> Result<usize, Errno> {
+        usize::try_from(output).ok().ok_or(Errno::RANGE)
     }
 }
 
@@ -233,7 +232,7 @@ unsafe impl Ioctl for Feature<'_> {
 fn feature(file: &File, opcode: Opcode, buffer: &mut [u8; REPORT_LEN]) -> io::Result<usize> {
     // SAFETY: `Feature` passes a pointer to a live, exclusively borrowed
     // buffer of exactly the size each opcode encodes.
-    unsafe { rustix::ioctl::ioctl(file, Feature { opcode, buffer }) }.map_err(io::Error::from)
+    unsafe { ioctl::ioctl(file, Feature { opcode, buffer }) }.map_err(io::Error::from)
 }
 
 #[cfg(test)]

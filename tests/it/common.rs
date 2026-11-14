@@ -1,5 +1,6 @@
 //! Starting the rgbctl binary for a test.
 
+use std::env;
 use std::process::Command;
 
 /// The colour variables an agent shell sets, removed from every child so the
@@ -19,7 +20,7 @@ pub(crate) fn rgbctl() -> Command {
     for name in COLOR_VARIABLES {
         command.env_remove(name);
     }
-    for (name, _) in std::env::vars_os() {
+    for (name, _) in env::vars_os() {
         if name.to_string_lossy().starts_with("RGBCTL_") {
             command.env_remove(name);
         }

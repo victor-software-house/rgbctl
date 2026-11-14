@@ -16,6 +16,7 @@ packages:
 patterns:
   skill:
     match: "version: {version}"
+    whole_line: true
     occurrences: once
 
 pins:
